@@ -1,0 +1,2 @@
+(test
+ (name toy_compiler))

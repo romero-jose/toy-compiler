@@ -1,0 +1,4 @@
+(executable
+ (public_name toy_compiler)
+ (name main)
+ (libraries toy_compiler))
