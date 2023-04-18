@@ -1,2 +1,9 @@
+(menhir
+ (modules parser))
+
 (library
- (name toy_compiler))
+ (name toy_compiler)
+ (modules ast anf closure parser lexer)
+ (preprocess
+  (pps ppx_deriving.show ppx_deriving.ord sedlex.ppx))
+ (libraries sedlex))
