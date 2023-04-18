@@ -12,7 +12,7 @@ and cexpr =
   | Prim2 of op2 * atom * atom
 
 and atom = Const of const | Var of string | Lam of string * expr
-and const = Int of int | Bool of bool [@@deriving show]
+and const = Int of int | Bool of bool [@@deriving show { with_path = false }]
 
 let atom_of_value : Ast.value -> atom = function
   | Int n -> Const (Int n)

@@ -12,7 +12,10 @@ let compile (e : Ast.e) =
   printf "Converting closures\n%!";
   let program = Closure.closure anf in
   printf "%a\n%!" Closure.pp_program program;
-  program
+  printf "Converting to llvm IR\n%!";
+  let funcs = Codegen.codegen_program program in
+  Llvm.dump_module Codegen.the_module;
+  funcs
 
 let _ =
   try

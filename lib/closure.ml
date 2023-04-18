@@ -1,7 +1,14 @@
 open Anf
 
 type program = LetFun of func * program | Expr of expr
-and func = Func of string * string list * expr
+
+and func =
+  | Func of {
+      name : string;
+      args : string list;
+      body : expr;
+      free_vars : string list;
+    }
 
 and expr =
   | Ret of cexpr
@@ -15,10 +22,9 @@ and cexpr =
   | Prim2 of Ast.op2 * atom * atom
 
 and atom = Const of const | Var of string | Closure of string * string list
-[@@deriving show]
+[@@deriving show { with_path = false }]
 
-let rec closure (e : Anf.expr) : program =
-  closure_e e (fun e -> Expr e)
+let rec closure (e : Anf.expr) : program = closure_e e (fun e -> Expr e)
 
 and closure_e (e : Anf.expr) k : program =
   match e with
@@ -33,13 +39,15 @@ and closure_e (e : Anf.expr) k : program =
 
 and closure_a (a : Anf.atom) k : program =
   match a with
-  | Anf.Const c -> k (Const c)
-  | Anf.Var v -> k (Var v)
-  | Anf.Lam (id, e) ->
+  | Const c -> k (Const c)
+  | Var v -> k (Var v)
+  | Lam (id, body) ->
+      let args = [ id ] in
       let free_vars = Anf.free_vars Anf.(Ret (Atom a)) in
-      let function_name = Ast.Gensym.fresh "lambda" in
-      let c = Closure (function_name, free_vars) in
-      closure_e e (fun e -> LetFun (Func (function_name, [ id ], e), k c))
+      let name = Ast.Gensym.fresh "lambda" in
+      let closure = Closure (name, free_vars) in
+      closure_e body (fun body ->
+          LetFun (Func { name; args; body; free_vars }, k closure))
 
 and closure_c (c : Anf.cexpr) k : program =
   match c with

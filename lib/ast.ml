@@ -6,7 +6,7 @@ type e =
   | Prim2 of op2 * e * e
   | If of e * e * e
   | Let of string * e * e
-[@@deriving show]
+[@@deriving show { with_path = false }]
 
 and value = Int of int | Bool of bool | Var of string
 and op1 = Neg | Not
@@ -23,7 +23,6 @@ module Gensym = struct
 end
 
 let uniquify e =
-  Format.printf "%a\n\n" pp_e e;
   let module Env = Map.Make (String) in
   let rec go (e : e) (env : string Env.t) : e =
     match (e : e) with
