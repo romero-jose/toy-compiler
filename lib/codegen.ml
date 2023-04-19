@@ -88,51 +88,61 @@ let rec codegen_program (program : program) =
       let f = codegen_func func in
       f :: codegen_program program'
   | Expr e ->
-      let body_builder f =
-        let v = codegen_expr e f in
-        let _ = Print.build_print_i64 v in
-        let ret = const_int Type.i32 0 in
-        ret
+      let func_main_ =
+        codegen_raw_function "main_" [] Type.i64 (fun _ ->
+            let v = codegen_expr e in
+            v)
       in
-      let function_list =
-        [ codegen_raw_function "main" [] Type.i32 body_builder ]
+      let func_main =
+        codegen_raw_function "main" [] Type.i32 (fun _ ->
+            let v = build_call func_main_ [||] "return" builder in
+            let _ = Print.build_print_i64 v in
+            let ret = const_int Type.i32 0 in
+            ret)
       in
+      let function_list = [ func_main_; func_main ] in
       Llvm_analysis.assert_valid_module the_module;
       function_list
 
-and codegen_expr (expr : expr) f =
+and codegen_expr (expr : expr) : llvalue =
   match expr with
   | Let (id, cexpr, expr) ->
       let v = codegen_cexpr cexpr in
       Hashtbl.add named_values id v;
-      codegen_expr expr f
+      codegen_expr expr
   | If (a, e1, e2) ->
-      let true_block = append_block context "true" f in
-      let false_block = append_block context "false" f in
-      let join_block = append_block context "join" f in
       (* cond *)
-      let v_cond = codegen_atom a in
+      let cond = codegen_atom a in
       let false_value = const_int Type.i64 0 in
-      let condition_value =
-        build_icmp Icmp.Ne v_cond false_value "cond" builder
-      in
-      let _ = build_cond_br condition_value true_block false_block builder in
-      (* true *)
-      position_at_end true_block builder;
-      let v_true = codegen_expr e1 f in
-      let _ = build_br join_block builder in
-      (* false *)
-      position_at_end false_block builder;
-      let v_false = codegen_expr e2 f in
-      let _ = build_br join_block builder in
-      (* phi *)
-      position_at_end join_block builder;
-      let phi_node =
-        build_phi
-          [ (v_true, true_block); (v_false, false_block) ]
-          "phi_node" builder
-      in
-      phi_node
+      let cond_val = build_icmp Icmp.Ne cond false_value "cond" builder in
+      let start_bb = insertion_block builder in
+      let the_function = block_parent start_bb in
+      (* then *)
+      let then_bb = append_block context "then" the_function in
+      position_at_end then_bb builder;
+      let then_val = codegen_expr e1 in
+      let new_then_bb = insertion_block builder in
+      (* else *)
+      let else_bb = append_block context "else" the_function in
+      position_at_end else_bb builder;
+      let else_val = codegen_expr e2 in
+      let new_else_bb = insertion_block builder in
+      (* merge *)
+      let merge_bb = append_block context "if_join" the_function in
+      position_at_end merge_bb builder;
+      let incoming = [ (then_val, new_then_bb); (else_val, new_else_bb) ] in
+      let phi = build_phi incoming "iftmp" builder in
+      (* return to start block *)
+      position_at_end start_bb builder;
+      ignore (build_cond_br cond_val then_bb else_bb builder);
+      (* Set a unconditional branch at the end of the 'then' block and the 'else' block to the 'merge' block. *)
+      position_at_end new_then_bb builder;
+      ignore (build_br merge_bb builder);
+      position_at_end new_else_bb builder;
+      ignore (build_br merge_bb builder);
+      (* Finally, set the builder to the end of the merge block. *)
+      position_at_end merge_bb builder;
+      phi
   | Ret cexpr -> codegen_cexpr cexpr
 
 and codegen_const (c : Anf.const) =
@@ -237,14 +247,14 @@ and codegen_func (func : func) =
             Hashtbl.add named_values var v)
           free_vars
       in
-      let ret_val = codegen_expr body f in
+      let ret_val = codegen_expr body in
       let _ = build_ret ret_val builder in
       verify_function f
 
 and codegen_raw_function (name : string) (args : (string * lltype) list)
-    (return_type : lltype) (body_builder : llvalue -> llvalue) =
+    (return_type : lltype) (body_builder : unit -> llvalue) =
   let f = codegen_proto (Prototype (name, args, return_type)) in
-  let ret_val = body_builder f in
+  let ret_val = body_builder () in
   let _ = build_ret ret_val builder in
   verify_function f
 
