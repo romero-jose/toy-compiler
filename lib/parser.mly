@@ -23,8 +23,14 @@
 %left PLUS MINUS
 %left TIMES
 
+%nonassoc NOT
+%nonassoc IN
+
 %start file
 %type <e option> file
+%type <e> expr
+%type <e> simple_expr
+%type <e> app_expr
 
 %%
 
