@@ -12,6 +12,9 @@ let compile (e : Ast.e) =
   printf "Beta reducing\n%!";
   let anf = Anf.beta_reduce anf in
   printf "%a\n\n%!" Anf.pp_expr anf;
+  printf "Removing unused let bindings\n%!";
+  let anf = Anf.remove_unused_let_bindings anf in
+  printf "%a\n\n%!" Anf.pp_expr anf;
   printf "Converting closures\n%!";
   let program = Closure.closure anf in
   printf "%a\n\n%!" Closure.pp_program program;

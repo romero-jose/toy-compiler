@@ -135,3 +135,25 @@ and beta_reduce_atom = function
       match body with
       | Ret (App (f, Var arg')) when arg' = arg -> f
       | _ -> Lam (arg, beta_reduce body))
+
+let remove_unused_let_bindings (e : expr) : expr =
+  let rec go_e (e : expr) =
+    match e with
+    | Ret c -> Ret (go_c c)
+    | Let (id, c, body) ->
+        let free_vars = free_vars_e body in
+        if StringSet.mem id free_vars then Let (id, c, go_e body) else go_e body
+    | If (a, e1, e2) -> If (go_a a, go_e e1, go_e e2)
+  and go_c (c : cexpr) : cexpr =
+    match (c : cexpr) with
+    | Atom a -> Atom (go_a a)
+    | App (a1, a2) -> App (go_a a1, go_a a2)
+    | Prim1 (op, a) -> Prim1 (op, go_a a)
+    | Prim2 (op2, a1, a2) -> Prim2 (op2, go_a a1, go_a a2)
+  and go_a (a : atom) : atom =
+    match (a : atom) with
+    | Const c -> Const c
+    | Var id -> Var id
+    | Lam (id, e) -> Lam (id, go_e e)
+  in
+  go_e e
