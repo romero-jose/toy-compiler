@@ -81,3 +81,57 @@ and free_vars_a a =
   | Const _ -> StringSet.empty
   | Var x -> StringSet.singleton x
   | Lam (id, e) -> StringSet.diff (free_vars_e e) (StringSet.singleton id)
+
+let rec subst_expr (subst : string * atom) = function
+  | Ret cexpr -> Ret (subst_cexpr subst cexpr)
+  | Let (name, cexpr, expr) ->
+      if name = fst subst then Let (name, subst_cexpr subst cexpr, expr)
+      else
+        let expr' = subst_expr subst expr in
+        Let (name, subst_cexpr subst cexpr, expr')
+  | If (cond, then_expr, else_expr) ->
+      let cond' = subst_atom subst cond in
+      let then_expr' = subst_expr subst then_expr in
+      let else_expr' = subst_expr subst else_expr in
+      If (cond', then_expr', else_expr')
+
+and subst_cexpr subst = function
+  | Atom atom -> Atom (subst_atom subst atom)
+  | App (func, arg) -> App (subst_atom subst func, subst_atom subst arg)
+  | Prim1 (op, arg) -> Prim1 (op, subst_atom subst arg)
+  | Prim2 (op, arg1, arg2) ->
+      Prim2 (op, subst_atom subst arg1, subst_atom subst arg2)
+
+and subst_atom (subst : string * atom) = function
+  | Var name when name = fst subst -> snd subst
+  | Var name -> Var name
+  | Const c -> Const c
+  | Lam (arg, body) ->
+      if arg = fst subst then Lam (arg, body)
+      else Lam (arg, subst_expr subst body)
+
+let rec beta_reduce = function
+  | Ret cexpr -> beta_reduce_cexpr cexpr (fun cexpr -> Ret cexpr)
+  | Let (name, cexpr, expr) ->
+      beta_reduce_cexpr cexpr (fun cexpr -> Let (name, cexpr, beta_reduce expr))
+  | If (cond, then_expr, else_expr) ->
+      If (beta_reduce_atom cond, beta_reduce then_expr, beta_reduce else_expr)
+
+and beta_reduce_cexpr cexpr (k : cexpr -> expr) =
+  match cexpr with
+  | Atom atom -> k (Atom (beta_reduce_atom atom))
+  | App (Lam (arg, body), arg') ->
+      let subst = (arg, arg') in
+      subst_expr subst body
+  | App (func, arg) -> k (App (beta_reduce_atom func, beta_reduce_atom arg))
+  | Prim1 (op, arg) -> k (Prim1 (op, beta_reduce_atom arg))
+  | Prim2 (op, arg1, arg2) ->
+      k (Prim2 (op, beta_reduce_atom arg1, beta_reduce_atom arg2))
+
+and beta_reduce_atom = function
+  | Var _ as v -> v
+  | Const _ as c -> c
+  | Lam (arg, body) -> (
+      match body with
+      | Ret (App (f, Var arg')) when arg' = arg -> f
+      | _ -> Lam (arg, beta_reduce body))
