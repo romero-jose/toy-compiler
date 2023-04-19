@@ -3,7 +3,6 @@ exception Eof
 open Parser
 
 let lexeme = Sedlexing.Utf8.lexeme
-
 let digit = [%sedlex.regexp? '0' .. '9']
 let number = [%sedlex.regexp? Plus digit]
 let lower = [%sedlex.regexp? 'a' .. 'z']
@@ -29,6 +28,8 @@ let else_ = [%sedlex.regexp? "else"]
 let fun_ = [%sedlex.regexp? "fun"]
 let let_ = [%sedlex.regexp? "let"]
 let in_ = [%sedlex.regexp? "in"]
+let true_ = [%sedlex.regexp? "true"]
+let false_ = [%sedlex.regexp? "false"]
 
 let rec token lexbuf =
   match%sedlex lexbuf with
@@ -37,9 +38,9 @@ let rec token lexbuf =
   | plus -> PLUS
   | minus -> MINUS
   | times -> TIMES
-  | less -> LESS
-  | not -> NOT
   | equal -> EQUAL
+  | not -> NOT
+  | less -> LESS
   | arrow -> ARROW
   | if_ -> IF
   | then_ -> THEN
@@ -47,6 +48,8 @@ let rec token lexbuf =
   | fun_ -> FUN
   | let_ -> LET
   | in_ -> IN
+  | true_ -> TRUE
+  | false_ -> FALSE
   | id -> ID (Sedlexing.Utf8.lexeme lexbuf)
   | number -> INT (int_of_string (Sedlexing.Utf8.lexeme lexbuf))
   | whitespace -> token lexbuf
@@ -55,6 +58,7 @@ let rec token lexbuf =
       token lexbuf
   | eof -> EOF
   | _ ->
-    Format.eprintf "invalid token '%s'\n%!" (Sedlexing.Utf8.lexeme lexbuf);
-    Format.eprintf "length %d\n%!" (String.length (Sedlexing.Utf8.lexeme lexbuf));
+      Format.eprintf "invalid token '%s'\n%!" (Sedlexing.Utf8.lexeme lexbuf);
+      Format.eprintf "length %d\n%!"
+        (String.length (Sedlexing.Utf8.lexeme lexbuf));
       exit 1
