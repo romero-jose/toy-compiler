@@ -1,5 +1,3 @@
-exception Eof
-
 open Parser
 
 let lexeme = Sedlexing.Utf8.lexeme
@@ -57,8 +55,8 @@ let rec token lexbuf =
       Sedlexing.new_line lexbuf;
       token lexbuf
   | eof -> EOF
-  | _ ->
-      Format.eprintf "invalid token '%s'\n%!" (Sedlexing.Utf8.lexeme lexbuf);
-      Format.eprintf "length %d\n%!"
-        (String.length (Sedlexing.Utf8.lexeme lexbuf));
-      exit 1
+  | any ->
+      let loc = Loc.loc_of_lexbuf lexbuf in
+      let str = Sedlexing.Utf8.lexeme lexbuf in
+      raise (Error.Error (loc, Syntax (UnexpectedToken str)))
+  | _ -> failwith "unreachable"

@@ -25,17 +25,13 @@ let compile (e : Ast.e) =
 
 let _ =
   try
-    let lexbuf = Sedlexing.Utf8.from_channel stdin in
-    let lexer = Sedlexing.with_tokenizer Lexer.token lexbuf in
-    let parser = MenhirLib.Convert.Simplified.traditional2revised Parser.file in
-    printf "Parsing\n%!";
-    let ast =
-      match parser lexer with
-      | Some expr -> expr
+  let ast =
+      match Driver.parse_stdin () with
+      | Some v -> v
       | None ->
-          eprintf "File is empty";
+          eprintf "Input is empty";
           exit 1
     in
     let _ = compile ast in
     ()
-  with Lexer.Eof -> exit 0
+  with Error.Error e -> Format.eprintf "%a\n" Error.pp_loc e
