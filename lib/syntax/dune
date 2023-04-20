@@ -1,0 +1,6 @@
+(library
+ (name syntax)
+ (modules anf ast closure)
+ (libraries sedlex)
+ (preprocess
+  (pps ppx_deriving.show ppx_deriving.ord)))

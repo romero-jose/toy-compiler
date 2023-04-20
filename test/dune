@@ -1,2 +1,9 @@
+(tests
+ (names toy_compiler)
+ (modules toy_compiler)
+ (libraries toy_compiler parsing syntax alcotest))
+
 (test
- (name toy_compiler))
+ (name test_parsing)
+ (modules test_parsing)
+ (libraries parsing syntax alcotest))

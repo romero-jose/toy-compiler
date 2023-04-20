@@ -1,4 +1,7 @@
 open Toy_compiler
+open Common
+open Syntax
+open Parsing
 open Format
 
 let compile (e : Ast.e) =
@@ -25,7 +28,7 @@ let compile (e : Ast.e) =
 
 let _ =
   try
-  let ast =
+    let ast =
       match Driver.parse_stdin () with
       | Some v -> v
       | None ->

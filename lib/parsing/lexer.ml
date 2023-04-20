@@ -1,3 +1,4 @@
+open Common
 open Parser
 
 let lexeme = Sedlexing.Utf8.lexeme

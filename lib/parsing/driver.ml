@@ -12,3 +12,8 @@ let parse_stdin () =
   Sedlexing.set_filename lexbuf "/dev/stdin";
   let lexer = Sedlexing.with_tokenizer Lexer.token lexbuf in
   parser lexer
+
+let parse_string str =
+  let lexbuf = Sedlexing.Utf8.from_string str in
+  let lexer = Sedlexing.with_tokenizer Lexer.token lexbuf in
+  parser lexer

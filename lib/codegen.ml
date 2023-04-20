@@ -1,5 +1,6 @@
-open Closure
 open Llvm
+open Syntax
+open Closure
 
 type proto = Prototype of string * (string * lltype) list * lltype
 

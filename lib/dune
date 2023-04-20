@@ -1,9 +1,4 @@
-(menhir
- (modules parser))
-
 (library
  (name toy_compiler)
- (modules ast anf closure parser lexer driver codegen error loc)
- (preprocess
-  (pps ppx_deriving.show ppx_deriving.ord sedlex.ppx))
- (libraries sedlex llvm llvm.analysis menhirLib))
+ (modules codegen)
+ (libraries common syntax llvm llvm.analysis))
