@@ -1,9 +1,12 @@
-(tests
- (names toy_compiler)
- (modules toy_compiler)
- (libraries toy_compiler parsing syntax alcotest))
-
 (test
  (name test_parsing)
  (modules test_parsing)
  (libraries parsing syntax alcotest))
+
+(library
+ (name test_compiler)
+ (modules test_compiler)
+ (libraries driver middle_end syntax ppx_expect.evaluator)
+ (inline_tests)
+ (preprocess
+  (pps ppx_expect)))

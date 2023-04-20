@@ -1,4 +1,4 @@
-open Toy_compiler
+open Middle_end
 open Common
 open Syntax
 open Parsing

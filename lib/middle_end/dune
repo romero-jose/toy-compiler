@@ -1,4 +1,4 @@
 (library
- (name toy_compiler)
+ (name middle_end)
  (modules codegen)
  (libraries common syntax llvm llvm.analysis))

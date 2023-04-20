@@ -1,4 +1,4 @@
 (executable
  (public_name toy_compiler)
  (name main)
- (libraries toy_compiler common syntax parsing menhirLib))
+ (libraries common middle_end syntax parsing menhirLib))
