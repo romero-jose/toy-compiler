@@ -39,9 +39,54 @@ let test_arithmetic () =
     (Prim2 (Minus, Prim2 (Plus, parse "1", parse "2 * 3"), parse "4"))
     (parse "1 + 2 * 3 - 4")
 
-let test_boolean_arithmetic () = 
+let test_boolean_arithmetic () =
   (check e) "same e"
-    (Value (Var "x")) (parse "1 < 2 or 3 = 4 and false")
+    (Prim2
+       ( Or,
+         Prim2 (Less, parse "1", parse "2"),
+         Prim2 (And, Prim2 (Eq, parse "3", parse "4"), Value (Bool false)) ))
+    (parse "1 < 2 or 3 = 4 and false")
+
+let test_let_bindings () =
+  (check e) "same e"
+    (Let
+       ( "x",
+         parse "1",
+         Let ("y", parse "x + 10", Let ("z", parse "x + y * 2", parse "z")) ))
+    (parse "let x = 1 in let y = x + 10 in let z = x + y * 2 in z")
+
+let test_if () =
+  (check e) "same e"
+    (If (parse "true", parse "if false then true else false", parse "false"))
+    (parse "if true then if false then true else false else false")
+
+let test_fun () =
+  (* Z combinator *)
+  let inner =
+    Lam ("v", App (App (Value (Var "x"), Value (Var "x")), Value (Var "v")))
+  in
+  let outer =
+    Lam
+      ( "f",
+        App
+          ( Lam ("x", App (Value (Var "f"), inner)),
+            Lam ("x", App (Value (Var "f"), inner)) ) )
+  in
+  (check e) "same e" outer
+    (parse
+       "fun f -> (fun x -> f (fun v -> x x v)) (fun x -> f (fun v -> x x v))")
+
+let test_fibonacci () =
+  (check e) "same e"
+    (If
+       ( parse "n < 2",
+         parse "1",
+         Prim2
+           ( Plus,
+             App (Value (Var "fibonacci"), parse "n - 1"),
+             App (Value (Var "fibonacci"), parse "n - 2") ) ))
+    (parse "if n < 2 then 1 else fibonacci (n - 1) + fibonacci (n - 2)")
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -56,5 +101,9 @@ let () =
           test_case "not" `Quick test_not;
           test_case "arithmetic" `Quick test_arithmetic;
           test_case "boolean arithmetic" `Quick test_boolean_arithmetic;
+          test_case "let bindings" `Quick test_let_bindings;
+          test_case "if" `Quick test_if;
+          test_case "function" `Quick test_fun;
+          test_case "fibonacci" `Quick test_fibonacci;
         ] );
     ]

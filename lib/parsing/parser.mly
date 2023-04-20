@@ -12,6 +12,7 @@
 %token MINUS
 %token TIMES
 %token EQUAL LESS
+%token AND OR
 %token IF THEN ELSE
 %token FUN
 %token LPAREN RPAREN
@@ -19,7 +20,11 @@
 %token EOF
 
 %nonassoc ELSE
-%nonassoc EQUAL LESS
+
+%right OR
+%right AND
+%left EQUAL
+%left LESS
 %left ARROW
 %left PLUS MINUS
 %left TIMES
@@ -64,6 +69,8 @@ expr:
   | TIMES {Times}
   | EQUAL {Eq}
   | LESS {Less}
+  | AND {And}
+  | OR {Or}
 
 app_expr:
   | e = simple_expr

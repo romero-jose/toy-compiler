@@ -1,12 +1,13 @@
 (library
  (name parsing)
- (modules parser lexer driver)
+ (modules parser parserMessages lexer driver)
  (libraries common syntax sedlex menhirLib)
  (preprocess
   (pps sedlex.ppx)))
 
 (menhir
- (modules parser))
+ (modules parser)
+ (flags -lg 1 -la 1 -lc 2 --exn-carries-state))
 
 ;;;;;;;;;;;;;;;;;
 ;;; Messages ;;;;

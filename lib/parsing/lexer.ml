@@ -18,6 +18,8 @@ let plus = [%sedlex.regexp? '+']
 let minus = [%sedlex.regexp? '-']
 let times = [%sedlex.regexp? '*']
 let equal = [%sedlex.regexp? '=']
+let and_ = [%sedlex.regexp? "and"]
+let or_ = [%sedlex.regexp? "or"]
 let not = [%sedlex.regexp? '!']
 let less = [%sedlex.regexp? '<']
 let arrow = [%sedlex.regexp? "->"]
@@ -38,6 +40,8 @@ let rec token lexbuf =
   | minus -> MINUS
   | times -> TIMES
   | equal -> EQUAL
+  | and_ -> AND
+  | or_ -> OR
   | not -> NOT
   | less -> LESS
   | arrow -> ARROW

@@ -1,0 +1,391 @@
+file: TIMES
+##
+## Ends in an error in state: 0.
+##
+## file' -> . file [ # ]
+##
+## The known suffix of the stack is as follows:
+##
+##
+
+expected an expression
+
+file: NOT TIMES
+##
+## Ends in an error in state: 2.
+##
+## expr -> NOT . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## NOT
+##
+
+expected an expression after '!'
+
+file: MINUS TIMES
+##
+## Ends in an error in state: 3.
+##
+## expr -> MINUS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## MINUS
+##
+
+expected an expression after '-' 
+
+file: LPAREN TIMES
+##
+## Ends in an error in state: 4.
+##
+## simple_expr -> LPAREN . expr RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LPAREN
+##
+
+expected an expression after '(' 
+
+file: LET TRUE
+##
+## Ends in an error in state: 5.
+##
+## expr -> LET . ID EQUAL expr IN expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LET
+##
+
+expected an identifier after 'let' 
+
+file: LET ID TRUE
+##
+## Ends in an error in state: 6.
+##
+## expr -> LET ID . EQUAL expr IN expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LET ID
+##
+
+expected '=' after the identifier in a let binding
+
+file: LET ID EQUAL TIMES
+##
+## Ends in an error in state: 7.
+##
+## expr -> LET ID EQUAL . expr IN expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LET ID EQUAL
+##
+
+expected an expression after '=' in a let binding
+
+file: IF TIMES
+##
+## Ends in an error in state: 9.
+##
+## expr -> IF . expr THEN expr ELSE expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## IF
+##
+
+expected an expression after 'if' 
+
+file: FUN TRUE
+##
+## Ends in an error in state: 11.
+##
+## expr -> FUN . ID ARROW expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## FUN
+##
+
+expected an identifier after 'fun' 
+
+file: FUN ID TRUE
+##
+## Ends in an error in state: 12.
+##
+## expr -> FUN ID . ARROW expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## FUN ID
+##
+
+expected '->' after the identifier in a function expression
+
+file: FUN ID ARROW TIMES
+##
+## Ends in an error in state: 13.
+##
+## expr -> FUN ID ARROW . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## FUN ID ARROW
+##
+
+expected an expression after '->' in a function expression
+
+file: FALSE TIMES TIMES
+##
+## Ends in an error in state: 17.
+##
+## expr -> expr TIMES . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr TIMES
+##
+
+expected an expression after '*' 
+
+file: FALSE NOT
+##
+## Ends in an error in state: 19.
+##
+## app_expr -> app_expr . simple_expr [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE AND ]
+## expr -> app_expr . [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## app_expr
+##
+
+ill formed expression
+
+file: FALSE PLUS TIMES
+##
+## Ends in an error in state: 21.
+##
+## expr -> expr PLUS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr PLUS
+##
+
+expected an expression after '+'
+
+file: FALSE MINUS TIMES
+##
+## Ends in an error in state: 23.
+##
+## expr -> expr MINUS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr MINUS
+##
+
+expected an expression after '-'
+
+file: IF FALSE RPAREN
+##
+## Ends in an error in state: 25.
+##
+## expr -> expr . PLUS expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . MINUS expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . TIMES expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . EQUAL expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . LESS expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . AND expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . OR expr [ TIMES THEN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> IF expr . THEN expr ELSE expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## IF expr
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 19, spurious reduction of production expr -> app_expr
+##
+
+expected 'then' after the condition of an if expression
+
+file: IF FALSE THEN TIMES
+##
+## Ends in an error in state: 26.
+##
+## expr -> IF expr THEN . expr ELSE expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## IF expr THEN
+##
+
+expected an expression after 'then' in an if expression
+
+file: IF FALSE THEN FALSE THEN
+##
+## Ends in an error in state: 27.
+##
+## expr -> expr . PLUS expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> expr . MINUS expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> expr . TIMES expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> expr . EQUAL expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> expr . LESS expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> expr . AND expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> expr . OR expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE AND ]
+## expr -> IF expr THEN expr . ELSE expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## IF expr THEN expr
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 19, spurious reduction of production expr -> app_expr
+##
+
+expected 'else' after the true branch in an if expression
+
+file: FALSE LESS TIMES
+##
+## Ends in an error in state: 30.
+##
+## expr -> expr LESS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr LESS
+##
+
+expected an expression after '<'
+
+
+file: FALSE EQUAL TIMES
+##
+## Ends in an error in state: 32.
+##
+## expr -> expr EQUAL . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr EQUAL
+##
+
+expected an expression after '='
+
+file: IF FALSE THEN FALSE ELSE TIMES
+##
+## Ends in an error in state: 36.
+##
+## expr -> IF expr THEN expr ELSE . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## IF expr THEN expr ELSE
+##
+
+expected an expression after 'else' in an if expression
+
+file: LET ID EQUAL FALSE THEN
+##
+## Ends in an error in state: 38.
+##
+## expr -> expr . PLUS expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> expr . MINUS expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> expr . TIMES expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> expr . EQUAL expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> expr . LESS expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> expr . AND expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> expr . OR expr [ TIMES PLUS OR MINUS LESS IN EQUAL AND ]
+## expr -> LET ID EQUAL expr . IN expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LET ID EQUAL expr
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 19, spurious reduction of production expr -> app_expr
+##
+
+expected 'in' after the binding expression in a let binding
+
+file: LET ID EQUAL FALSE IN TIMES
+##
+## Ends in an error in state: 39.
+##
+## expr -> LET ID EQUAL expr IN . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LET ID EQUAL expr IN
+##
+
+expected an expression after 'in' in a let binding
+
+file: LPAREN FALSE THEN
+##
+## Ends in an error in state: 41.
+##
+## expr -> expr . PLUS expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . MINUS expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . TIMES expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . EQUAL expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . LESS expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . AND expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## expr -> expr . OR expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL AND ]
+## simple_expr -> LPAREN expr . RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## LPAREN expr
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 19, spurious reduction of production expr -> app_expr
+##
+
+unclosed parenthesis, missing ')' after expression
+
+file: FALSE THEN
+##
+## Ends in an error in state: 47.
+##
+## expr -> expr . PLUS expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## expr -> expr . MINUS expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## expr -> expr . TIMES expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## expr -> expr . EQUAL expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## expr -> expr . LESS expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## expr -> expr . AND expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## expr -> expr . OR expr [ TIMES PLUS OR MINUS LESS EQUAL EOF AND ]
+## file -> expr . EOF [ # ]
+##
+## The known suffix of the stack is as follows:
+## expr
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 19, spurious reduction of production expr -> app_expr
+##
+
+expected expression
+
+
+file: FALSE OR TIMES
+##
+## Ends in an error in state: 28.
+##
+## expr -> expr OR . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr OR
+##
+
+expected expression after 'or'
+
+file: FALSE AND TIMES
+##
+## Ends in an error in state: 34.
+##
+## expr -> expr AND . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE AND ]
+##
+## The known suffix of the stack is as follows:
+## expr AND
+##
+
+expected expression after 'and'
