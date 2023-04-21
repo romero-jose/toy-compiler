@@ -6,6 +6,7 @@ type e =
   | Prim2 of op2 * e * e
   | If of e * e * e
   | Let of string * e * e
+  | Letrec of (string * e) list * e
   | Tuple of e list
   | Get of e * int
 [@@deriving show { with_path = false }]
@@ -43,6 +44,15 @@ let uniquify e =
         let x' = Gensym.fresh x in
         let env' = Env.add x x' env in
         Let (x', go e1 env, go e2 env')
+    | Letrec (bindings, e) ->
+        let binding_list =
+          List.map (fun (x, _) -> (x, Gensym.fresh x)) bindings
+        in
+        let binding_seq = List.to_seq binding_list in
+        let env' = Env.add_seq binding_seq env in
+        Letrec
+          ( List.map (fun (x, e) -> (Env.find x env', go e env')) bindings,
+            go e env' )
     | Tuple exprs -> Tuple (List.map (fun e -> go e env) exprs)
     | Get (e, i) -> Get (go e env, i)
   in

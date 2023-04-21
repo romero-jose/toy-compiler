@@ -13,6 +13,7 @@ and func =
 and expr =
   | Ret of cexpr
   | Let of string * cexpr * expr
+  | Letrec of (string * cexpr) list * expr
   | If of atom * expr * expr
 
 and cexpr =
@@ -34,6 +35,13 @@ and closure_e (e : Anf.expr) k : program =
   | Let (id, cexpr, expr) ->
       closure_c cexpr (fun cexpr ->
           closure_e expr (fun expr -> k (Let (id, cexpr, expr))))
+  | Letrec (bindings, expr) ->
+      let rec go acc bindings =
+        match bindings with
+        | [] -> closure_e expr (fun expr -> k (Letrec (List.rev acc, expr)))
+        | (id, c) :: tl -> closure_c c (fun cexpr -> go ((id, cexpr) :: acc) tl)
+      in
+      go [] bindings
   | If (a, expr1, expr2) ->
       closure_a a (fun a ->
           closure_e expr1 (fun expr1 ->

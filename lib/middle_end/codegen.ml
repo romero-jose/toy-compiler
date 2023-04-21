@@ -138,6 +138,13 @@ and codegen_expr (expr : expr) : llvalue =
       let v = codegen_cexpr cexpr in
       Hashtbl.add named_values id v;
       codegen_expr expr
+  | Letrec (bindings, expr) ->
+      List.iter
+        (fun (id, c) ->
+          let v = codegen_cexpr c in
+          Hashtbl.add named_values id v)
+        bindings;
+      codegen_expr expr
   | If (a, e1, e2) ->
       (* cond *)
       let cond = codegen_atom a in

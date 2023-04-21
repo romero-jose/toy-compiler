@@ -3,6 +3,7 @@ open Ast
 type expr =
   | Ret of cexpr
   | Let of string * cexpr * expr
+  | Letrec of (string * cexpr) list * expr
   | If of atom * expr * expr
 
 and cexpr =
@@ -31,6 +32,13 @@ let rec trans0 : Ast.e -> expr = function
       trans1 e1 (fun e1 -> trans1 e2 (fun e2 -> Ret (Prim2 (op, e1, e2))))
   | If (e1, e2, e3) -> trans1 e1 (fun e1 -> If (e1, trans0 e2, trans0 e3))
   | Let (x, e1, e2) -> trans1 e1 (fun e1 -> Let (x, Atom e1, trans0 e2))
+  | Letrec (bindings, e) ->
+      let rec go acc bindings =
+        match bindings with
+        | [] -> Letrec (List.rev acc, trans0 e)
+        | (x, e) :: tl -> trans1 e (fun e -> go ((x, Atom e) :: acc) tl)
+      in
+      go [] bindings
   | Tuple exprs ->
       let rec go exprs acc =
         match exprs with
@@ -60,6 +68,13 @@ and trans1 (e : Ast.e) (k : atom -> expr) : expr =
           If (e1, trans1 e2 (fun e2 -> k e2), trans1 e3 (fun e3 -> k e3)))
   | Let (x, e1, e2) ->
       trans1 e1 (fun e1 -> Let (x, Atom e1, trans1 e2 (fun e2 -> k e2)))
+  | Letrec (bindings, e) ->
+      let rec go acc bindings =
+        match bindings with
+        | [] -> Letrec (List.rev acc, trans1 e (fun e -> k e))
+        | (x, e) :: tl -> trans1 e (fun e -> go ((x, Atom e) :: acc) tl)
+      in
+      go [] bindings
   | Tuple exprs ->
       let rec go exprs acc =
         let name = Gensym.fresh "tuple" in
@@ -86,6 +101,13 @@ and free_vars_e e =
   | Let (id, c, e) ->
       StringSet.union (free_vars_c c)
         (StringSet.diff (free_vars_e e) (StringSet.singleton id))
+  | Letrec (bindings, e) ->
+      let bound_variables = StringSet.of_list (List.map fst bindings) in
+      let exprs = List.map (fun (_, c) -> free_vars_c c) bindings in
+      let used_variables : StringSet.t =
+        List.fold_left StringSet.union (free_vars_e e) exprs
+      in
+      StringSet.diff used_variables bound_variables
   | If (a, e1, e2) ->
       StringSet.union (free_vars_a a)
         (StringSet.union (free_vars_e e1) (free_vars_e e2))
@@ -109,15 +131,17 @@ and free_vars_a a =
 
 let rec subst_expr (subst : string * atom) = function
   | Ret cexpr -> Ret (subst_cexpr subst cexpr)
-  | Let (name, cexpr, expr) ->
-      if name = fst subst then Let (name, subst_cexpr subst cexpr, expr)
-      else
-        let expr' = subst_expr subst expr in
-        Let (name, subst_cexpr subst cexpr, expr')
-  | If (cond, then_expr, else_expr) ->
-      let cond' = subst_atom subst cond in
-      let then_expr' = subst_expr subst then_expr in
-      let else_expr' = subst_expr subst else_expr in
+  | Let (x, c, e) -> Let (x, subst_cexpr subst c, subst_expr subst e)
+  | Letrec (bindings, e) ->
+      let bindings' =
+        List.map (fun (x, c) -> (x, subst_cexpr subst c)) bindings
+      in
+      let e' = subst_expr subst e in
+      Letrec (bindings', e')
+  | If (c, then_e, else_e) ->
+      let cond' = subst_atom subst c in
+      let then_expr' = subst_expr subst then_e in
+      let else_expr' = subst_expr subst else_e in
       If (cond', then_expr', else_expr')
 
 and subst_cexpr subst = function
@@ -141,6 +165,13 @@ let rec beta_reduce = function
   | Ret cexpr -> beta_reduce_cexpr cexpr (fun cexpr -> Ret cexpr)
   | Let (name, cexpr, expr) ->
       beta_reduce_cexpr cexpr (fun cexpr -> Let (name, cexpr, beta_reduce expr))
+  | Letrec (bindings, expr) ->
+      let rec go acc bindings =
+        match bindings with
+        | [] -> Letrec (List.rev acc, beta_reduce expr)
+        | (x, c) :: tl -> beta_reduce_cexpr c (fun c -> go ((x, c) :: acc) tl)
+      in
+      go [] bindings
   | If (cond, then_expr, else_expr) ->
       If (beta_reduce_atom cond, beta_reduce then_expr, beta_reduce else_expr)
 
@@ -172,6 +203,13 @@ let remove_unused_let_bindings (e : expr) : expr =
     | Let (id, c, body) ->
         let free_vars = free_vars_e body in
         if StringSet.mem id free_vars then Let (id, c, go_e body) else go_e body
+    | Letrec (bindings, e) ->
+      let free_vars_list = List.map (fun (_, c) -> free_vars_c c) bindings in
+      let used_variables : StringSet.t =
+        List.fold_left StringSet.union (free_vars_e e) free_vars_list
+      in
+      let bindings' = List.filter (fun (x, _) -> StringSet.mem x used_variables) bindings in
+      Letrec (bindings', go_e e)
     | If (a, e1, e2) -> If (go_a a, go_e e1, go_e e2)
   and go_c (c : cexpr) : cexpr =
     match (c : cexpr) with
