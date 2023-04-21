@@ -38,7 +38,7 @@ file: LPAREN TIMES
 ##
 ## Ends in an error in state: 4.
 ##
-## simple_expr -> LPAREN . expr RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE COMMA AND ]
+## simple_expr -> LPAREN . expr RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN
@@ -132,7 +132,7 @@ expected an expression after '->' in a function expression
 
 file: FALSE TIMES TIMES
 ##
-## Ends in an error in state: 19.
+## Ends in an error in state: 23.
 ##
 ## expr -> expr TIMES . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -144,20 +144,20 @@ expected an expression after '*'
 
 file: FALSE NOT
 ##
-## Ends in an error in state: 21.
+## Ends in an error in state: 15.
 ##
-## app_expr -> app_expr . simple_expr [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE COMMA AND ]
-## expr -> app_expr . [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
+## app_expr -> simple_expr . [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE COMMA AND ]
+## simple_expr -> simple_expr . DOT LPAREN INT RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
 ##
 ## The known suffix of the stack is as follows:
-## app_expr
+## simple_expr
 ##
 
-ill formed expression
+ill-formed expression
 
 file: FALSE PLUS TIMES
 ##
-## Ends in an error in state: 23.
+## Ends in an error in state: 27.
 ##
 ## expr -> expr PLUS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -169,7 +169,7 @@ expected an expression after '+'
 
 file: FALSE MINUS TIMES
 ##
-## Ends in an error in state: 27.
+## Ends in an error in state: 31.
 ##
 ## expr -> expr MINUS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -181,7 +181,7 @@ expected an expression after '-'
 
 file: IF FALSE RPAREN
 ##
-## Ends in an error in state: 36.
+## Ends in an error in state: 40.
 ##
 ## expr -> expr . PLUS expr [ TIMES THEN PLUS OR MINUS LESS EQUAL COMMA AND ]
 ## expr -> expr . MINUS expr [ TIMES THEN PLUS OR MINUS LESS EQUAL COMMA AND ]
@@ -200,14 +200,15 @@ file: IF FALSE RPAREN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production expr -> app_expr
+## In state 15, spurious reduction of production app_expr -> simple_expr
+## In state 25, spurious reduction of production expr -> app_expr
 ##
 
 expected 'then' after the condition of an if expression
 
 file: IF FALSE THEN TIMES
 ##
-## Ends in an error in state: 37.
+## Ends in an error in state: 41.
 ##
 ## expr -> IF expr THEN . expr ELSE expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -219,7 +220,7 @@ expected an expression after 'then' in an if expression
 
 file: IF FALSE THEN FALSE THEN
 ##
-## Ends in an error in state: 38.
+## Ends in an error in state: 42.
 ##
 ## expr -> expr . PLUS expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE COMMA AND ]
 ## expr -> expr . MINUS expr [ TIMES PLUS OR MINUS LESS EQUAL ELSE COMMA AND ]
@@ -238,14 +239,15 @@ file: IF FALSE THEN FALSE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production expr -> app_expr
+## In state 15, spurious reduction of production app_expr -> simple_expr
+## In state 25, spurious reduction of production expr -> app_expr
 ##
 
 expected 'else' after the true branch in an if expression
 
 file: FALSE LESS TIMES
 ##
-## Ends in an error in state: 29.
+## Ends in an error in state: 33.
 ##
 ## expr -> expr LESS . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -258,7 +260,7 @@ expected an expression after '<'
 
 file: FALSE EQUAL TIMES
 ##
-## Ends in an error in state: 31.
+## Ends in an error in state: 35.
 ##
 ## expr -> expr EQUAL . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -270,7 +272,7 @@ expected an expression after '='
 
 file: IF FALSE THEN FALSE ELSE TIMES
 ##
-## Ends in an error in state: 39.
+## Ends in an error in state: 43.
 ##
 ## expr -> IF expr THEN expr ELSE . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -282,7 +284,7 @@ expected an expression after 'else' in an if expression
 
 file: LET ID EQUAL FALSE THEN
 ##
-## Ends in an error in state: 43.
+## Ends in an error in state: 47.
 ##
 ## expr -> expr . PLUS expr [ TIMES PLUS OR MINUS LESS IN EQUAL COMMA AND ]
 ## expr -> expr . MINUS expr [ TIMES PLUS OR MINUS LESS IN EQUAL COMMA AND ]
@@ -301,14 +303,15 @@ file: LET ID EQUAL FALSE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production expr -> app_expr
+## In state 15, spurious reduction of production app_expr -> simple_expr
+## In state 25, spurious reduction of production expr -> app_expr
 ##
 
 expected 'in' after the binding expression in a let binding
 
 file: LET ID EQUAL FALSE IN TIMES
 ##
-## Ends in an error in state: 44.
+## Ends in an error in state: 48.
 ##
 ## expr -> LET ID EQUAL expr IN . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -320,7 +323,7 @@ expected an expression after 'in' in a let binding
 
 file: LPAREN FALSE THEN
 ##
-## Ends in an error in state: 46.
+## Ends in an error in state: 50.
 ##
 ## expr -> expr . PLUS expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL COMMA AND ]
 ## expr -> expr . MINUS expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL COMMA AND ]
@@ -330,7 +333,7 @@ file: LPAREN FALSE THEN
 ## expr -> expr . AND expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL COMMA AND ]
 ## expr -> expr . OR expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL COMMA AND ]
 ## reversed_separated_nontrivial_llist(COMMA,expr) -> expr . COMMA expr [ TIMES RPAREN PLUS OR MINUS LESS EQUAL COMMA AND ]
-## simple_expr -> LPAREN expr . RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE COMMA AND ]
+## simple_expr -> LPAREN expr . RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN expr
@@ -339,14 +342,15 @@ file: LPAREN FALSE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production expr -> app_expr
+## In state 15, spurious reduction of production app_expr -> simple_expr
+## In state 25, spurious reduction of production expr -> app_expr
 ##
 
 unclosed parenthesis, missing ')' after expression
 
 file: FALSE THEN
 ##
-## Ends in an error in state: 52.
+## Ends in an error in state: 56.
 ##
 ## expr -> expr . PLUS expr [ TIMES PLUS OR MINUS LESS EQUAL EOF COMMA AND ]
 ## expr -> expr . MINUS expr [ TIMES PLUS OR MINUS LESS EQUAL EOF COMMA AND ]
@@ -365,7 +369,8 @@ file: FALSE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production expr -> app_expr
+## In state 15, spurious reduction of production app_expr -> simple_expr
+## In state 25, spurious reduction of production expr -> app_expr
 ##
 
 expected expression
@@ -373,7 +378,7 @@ expected expression
 
 file: FALSE OR TIMES
 ##
-## Ends in an error in state: 25.
+## Ends in an error in state: 29.
 ##
 ## expr -> expr OR . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -385,7 +390,7 @@ expected expression after 'or'
 
 file: FALSE AND TIMES
 ##
-## Ends in an error in state: 33.
+## Ends in an error in state: 37.
 ##
 ## expr -> expr AND . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -397,7 +402,7 @@ expected expression after 'and'
 
 file: FALSE COMMA FALSE COMMA TIMES
 ##
-## Ends in an error in state: 17.
+## Ends in an error in state: 21.
 ##
 ## reversed_separated_nontrivial_llist(COMMA,expr) -> reversed_separated_nontrivial_llist(COMMA,expr) COMMA . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -409,7 +414,7 @@ expected expression after ',' in a tuple
 
 file: FALSE COMMA TIMES
 ##
-## Ends in an error in state: 41.
+## Ends in an error in state: 45.
 ##
 ## reversed_separated_nontrivial_llist(COMMA,expr) -> expr COMMA . expr [ TIMES THEN RPAREN PLUS OR MINUS LESS IN EQUAL EOF ELSE COMMA AND ]
 ##
@@ -418,3 +423,52 @@ file: FALSE COMMA TIMES
 ##
 
 expected expression after ',' in a tuple
+
+file: FALSE DOT TRUE
+##
+## Ends in an error in state: 16.
+##
+## simple_expr -> simple_expr DOT . LPAREN INT RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
+##
+## The known suffix of the stack is as follows:
+## simple_expr DOT
+##
+
+expected '(' after '.' in a tuple element access
+
+file: FALSE DOT LPAREN TRUE
+##
+## Ends in an error in state: 17.
+##
+## simple_expr -> simple_expr DOT LPAREN . INT RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
+##
+## The known suffix of the stack is as follows:
+## simple_expr DOT LPAREN
+##
+
+expected a number after '(' in a tuple element access
+
+file: FALSE DOT LPAREN INT TRUE
+##
+## Ends in an error in state: 18.
+##
+## simple_expr -> simple_expr DOT LPAREN INT . RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
+##
+## The known suffix of the stack is as follows:
+## simple_expr DOT LPAREN INT
+##
+
+expected ')' after index in tuple element access
+
+file: FALSE FALSE NOT
+##
+## Ends in an error in state: 26.
+##
+## app_expr -> app_expr simple_expr . [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE COMMA AND ]
+## simple_expr -> simple_expr . DOT LPAREN INT RPAREN [ TRUE TIMES THEN RPAREN PLUS OR MINUS LPAREN LESS INT IN ID FALSE EQUAL EOF ELSE DOT COMMA AND ]
+##
+## The known suffix of the stack is as follows:
+## app_expr simple_expr
+##
+
+ill-formed expression

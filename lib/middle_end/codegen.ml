@@ -1,3 +1,4 @@
+open Common
 open Llvm
 open Syntax
 open Closure
@@ -28,30 +29,54 @@ module Type = struct
   let func_ptr args = Llvm.pointer_type (func args)
 end
 
-let the_module = create_module context "gradual_typing"
+module Module = struct
+  let _module : llmodule option ref = ref None
+  let init name = _module := Some (create_module context name)
+
+  let get : unit -> llmodule =
+   fun () ->
+    match !_module with
+    | None ->
+        Error.error
+          (Codegen
+             (UninitializedModule
+                "tried to use LLVM module before it has been initialized"))
+    | Some m -> m
+end
+
 let builder = builder context
 let named_values = Hashtbl.create 32
+let true_val = const_int Type.i64 1
+let false_val = const_int Type.i64 0
 
 module Print = struct
-  let printf_func =
-    let printf_type =
-      var_arg_function_type (i32_type context) [| pointer_type Type.i8 |]
-    in
-    declare_function "printf" printf_type the_module
-
   let build_print (format : string) (arg : llvalue) =
+    let the_module = Module.get () in
+    let printf_func =
+      let printf_type =
+        var_arg_function_type (i32_type context) [| pointer_type Type.i8 |]
+      in
+      declare_function "printf" printf_type the_module
+    in
     let format_str = build_global_stringptr format "format_str" builder in
     build_call printf_func [| format_str; arg |] "printf_call" builder
 
   let build_print_i64 (arg : llvalue) = build_print "%lld\n" arg
 end
 
-let build_store_to_array arr_ptr (index : int) value =
+let build_store_to_array array_pointer (index : int) value =
   let zero = const_int Type.i64 0 in
   let idx = const_int Type.i64 index in
   let indices = [| zero; idx |] in
-  let ptr = build_gep arr_ptr indices "array_element_ptr" builder in
+  let ptr = build_gep array_pointer indices "array_element_ptr" builder in
   build_store value ptr builder
+
+let build_load_from_array array_pointer (index : int) =
+  let zero = const_int Type.i64 0 in
+  let idx = const_int Type.i64 index in
+  let indices = [| zero; idx |] in
+  let ptr = build_gep array_pointer indices "array_element_ptr" builder in
+  build_load ptr "array_element" builder
 
 let verify_function f =
   try
@@ -67,6 +92,7 @@ let verify_function f =
     raise e
 
 let declare_function name f_type args =
+  let the_module = Module.get () in
   match lookup_function name the_module with
   | None -> declare_function name f_type the_module
   | Some f ->
@@ -84,6 +110,7 @@ let load_var_from_env env idx id =
   build_load var_ptr name builder
 
 let rec codegen_program (program : program) =
+  let the_module = Module.get () in
   match program with
   | LetFun (func, program') ->
       let f = codegen_func func in
@@ -159,6 +186,7 @@ and codegen_atom (atom : atom) =
       | Some v -> v
       | None -> failwith (Format.sprintf "codegen: variable '%s' not found" id))
   | Closure (fname, captured_vars) ->
+      let the_module = Module.get () in
       let f =
         match lookup_function fname the_module with
         | Some f -> f
@@ -207,14 +235,23 @@ and codegen_cexpr (cexpr : cexpr) =
   | Prim1 (op, a) -> lift_op1 op (codegen_atom a)
   | Prim2 (op, a1, a2) -> lift_op2 op (codegen_atom a1) (codegen_atom a2)
   | Tuple atoms ->
-      let array = build_malloc Type.i64 "array" builder in
+      let array_type = Type.array (List.length atoms) in
+      let array_ptr = build_malloc array_type "array" builder in
       List.iteri
         (fun i a ->
           let v = codegen_atom a in
-          let _ = build_store_to_array array i v in
+          let _ = build_store_to_array array_ptr i v in
           ())
         atoms;
-      array
+      (* Cast the array pointer to an integer for return *)
+      let cast_closure =
+        Llvm.build_ptrtoint array_ptr Type.i64 "cast_array" builder
+      in
+      cast_closure
+  | Get (a, i) ->
+      let v = codegen_atom a in
+      let v_cast = build_inttoptr v (Type.array_ptr 0) "array_ptr" builder in
+      build_load_from_array v_cast i
 
 and lift_op1 op a =
   match op with
@@ -222,8 +259,6 @@ and lift_op1 op a =
   | Ast.Not -> build_xor a (const_int Type.i64 1) "not" builder
 
 and lift_op2 op a1 a2 =
-  let true_val = const_int Type.i64 1 in
-  let false_val = const_int Type.i64 0 in
   match op with
   | Ast.Plus -> build_add a1 a2 "add" builder
   | Ast.Times -> build_mul a1 a2 "mul" builder

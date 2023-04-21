@@ -18,8 +18,10 @@
 %token LPAREN RPAREN
 %token LET IN
 %token COMMA
+%token DOT
 %token EOF
 
+%nonassoc IN
 %nonassoc ELSE
 
 %nonassoc below_COMMA
@@ -33,7 +35,6 @@
 %left TIMES
 
 %nonassoc NOT
-%nonassoc IN
 
 %start file
 %type <e option> file
@@ -91,6 +92,7 @@ simple_expr:
     { Value (Bool false) }
   | n = INT
     { Value (Int n) }
+  | e = simple_expr DOT LPAREN n = INT RPAREN{ Get (e, n) }
   | LPAREN e = expr RPAREN	
     { e }
 

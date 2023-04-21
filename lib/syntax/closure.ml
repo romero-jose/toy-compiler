@@ -21,6 +21,7 @@ and cexpr =
   | Prim1 of Ast.op1 * atom
   | Prim2 of Ast.op2 * atom * atom
   | Tuple of atom list
+  | Get of atom * int
 
 and atom = Const of const | Var of string | Closure of string * string list
 [@@deriving show { with_path = false }]
@@ -65,3 +66,4 @@ and closure_c (c : Anf.cexpr) k : program =
         | [] -> k (Tuple (List.rev acc))
       in
       go [] atoms
+  | Anf.Get (a, i) -> closure_a a (fun a -> k (Get (a, i)))

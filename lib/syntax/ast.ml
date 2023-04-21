@@ -7,6 +7,7 @@ type e =
   | If of e * e * e
   | Let of string * e * e
   | Tuple of e list
+  | Get of e * int
 [@@deriving show { with_path = false }]
 
 and value = Int of int | Bool of bool | Var of string
@@ -43,5 +44,6 @@ let uniquify e =
         let env' = Env.add x x' env in
         Let (x', go e1 env, go e2 env')
     | Tuple exprs -> Tuple (List.map (fun e -> go e env) exprs)
+    | Get (e, i) -> Get (go e env, i)
   in
   go e Env.empty

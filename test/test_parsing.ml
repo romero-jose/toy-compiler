@@ -3,21 +3,6 @@ open Syntax
 open Ast
 open Parsing
 
-(*
-   type e =
-     | Value of value
-     | Lam of string * e
-     | App of e * e
-     | Prim1 of op1 * e
-     | Prim2 of op2 * e * e
-     | If of e * e * e
-     | Let of string * e * e
-
-   and value = Int of int | Bool of bool | Var of string
-   and op1 = Neg | Not
-   and op2 = Plus | Minus | Times | And | Or | Eq | Less
-*)
-
 let parse str =
   match Driver.parse_string str with Some v -> v | None -> assert false
 
@@ -78,8 +63,15 @@ let test_fun () =
 
 let test_tuple () =
   (check e) "same e"
-    (Tuple (List.map parse ["1"; "true"; "f 5"; "fun x -> x"; "(1 , 2)" ]))
-    (parse "(1, true, f 5,fun x -> x, (1,2))")
+    (Tuple
+       [
+         parse "1";
+         parse "true";
+         parse "f 5";
+         Lam ("x", Get (parse "x", 3));
+         Get (Get (Tuple [ parse "1"; parse "2" ], 0), 1);
+       ])
+    (parse "(1, true, f 5,fun x -> x.(3), (1,2).(0).(1))")
 
 let test_fibonacci () =
   (check e) "same e"

@@ -8,7 +8,8 @@ let compile_e e output_file =
   let anf = Anf.remove_unused_let_bindings anf in
   let program = Closure.closure anf in
   let _ = Codegen.codegen_program program in
-  Llvm.print_module output_file Codegen.the_module
+  let the_module = Codegen.Module.get () in
+  Llvm.print_module output_file the_module
 
 let compile_string str output_file =
   let e = Option.get (Parsing.Driver.parse_string str) in

@@ -9,7 +9,7 @@ let try_parse lexbuf parser =
   with Parser.Error state ->
     let loc = Loc.loc_of_lexbuf lexbuf in
     let msg = ParserMessages.message state in
-    raise (Error.Error (loc, Syntax (ParsingError msg)))
+    Error.error_with_loc (Syntax (ParsingError msg)) loc
 
 let parse_file filename =
   let in_channel = open_in filename in

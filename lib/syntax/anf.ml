@@ -11,6 +11,7 @@ and cexpr =
   | Prim1 of op1 * atom
   | Prim2 of op2 * atom * atom
   | Tuple of atom list
+  | Get of atom * int
 
 and atom = Const of const | Var of string | Lam of string * expr
 and const = Int of int | Bool of bool [@@deriving show { with_path = false }]
@@ -37,6 +38,7 @@ let rec trans0 : Ast.e -> expr = function
         | [] -> Ret (Tuple (List.rev acc))
       in
       go exprs []
+  | Get (e, i) -> trans1 e (fun e -> Ret (Get (e, i)))
 
 and trans1 (e : Ast.e) (k : atom -> expr) : expr =
   match e with
@@ -66,6 +68,9 @@ and trans1 (e : Ast.e) (k : atom -> expr) : expr =
         | [] -> Let (name, Tuple (List.rev acc), k (Var name))
       in
       go exprs []
+  | Get (e, i) ->
+      let name = Gensym.fresh "name" in
+      trans1 e (fun e -> Let (name, Get (e, i), k (Var name)))
 
 let trans : Ast.e -> expr =
   Gensym.init ();
@@ -94,6 +99,7 @@ and free_vars_c c =
   | Tuple atoms ->
       List.fold_left StringSet.union StringSet.empty
         (List.map free_vars_a atoms)
+  | Get (e, _) -> free_vars_a e
 
 and free_vars_a a =
   match a with
@@ -121,6 +127,7 @@ and subst_cexpr subst = function
   | Prim2 (op, arg1, arg2) ->
       Prim2 (op, subst_atom subst arg1, subst_atom subst arg2)
   | Tuple atoms -> Tuple (List.map (subst_atom subst) atoms)
+  | Get (arg, i) -> Get (subst_atom subst arg, i)
 
 and subst_atom (subst : string * atom) = function
   | Var name when name = fst subst -> snd subst
@@ -148,6 +155,7 @@ and beta_reduce_cexpr cexpr (k : cexpr -> expr) =
   | Prim2 (op, arg1, arg2) ->
       k (Prim2 (op, beta_reduce_atom arg1, beta_reduce_atom arg2))
   | Tuple atoms -> k (Tuple (List.map beta_reduce_atom atoms))
+  | Get (arg, i) -> k (Get (arg, i))
 
 and beta_reduce_atom = function
   | Var _ as v -> v
@@ -172,6 +180,7 @@ let remove_unused_let_bindings (e : expr) : expr =
     | Prim1 (op, a) -> Prim1 (op, go_a a)
     | Prim2 (op2, a1, a2) -> Prim2 (op2, go_a a1, go_a a2)
     | Tuple atoms -> Tuple (List.map go_a atoms)
+    | Get (a, i) -> Get (go_a a, i)
   and go_a (a : atom) : atom =
     match (a : atom) with
     | Const c -> Const c

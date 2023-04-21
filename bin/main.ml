@@ -22,8 +22,10 @@ let compile (e : Ast.e) =
   let program = Closure.closure anf in
   printf "%a\n\n%!" Closure.pp_program program;
   printf "Converting to llvm IR\n%!";
+  Codegen.Module.init "main";
   let funcs = Codegen.codegen_program program in
-  Llvm.dump_module Codegen.the_module;
+  let the_module = Codegen.Module.get () in
+  Llvm.dump_module the_module;
   funcs
 
 let _ =
@@ -37,4 +39,4 @@ let _ =
     in
     let _ = compile ast in
     ()
-  with Error.Error e -> Format.eprintf "%a\n" Error.pp_loc e
+  with Error.Error e -> Format.eprintf "%a\n" Error.pp_loc e; exit 1

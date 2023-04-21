@@ -32,6 +32,7 @@ let in_ = [%sedlex.regexp? "in"]
 let true_ = [%sedlex.regexp? "true"]
 let false_ = [%sedlex.regexp? "false"]
 let comma = [%sedlex.regexp? ',']
+let dot = [%sedlex.regexp? '.']
 
 let rec token lexbuf =
   match%sedlex lexbuf with
@@ -55,6 +56,7 @@ let rec token lexbuf =
   | true_ -> TRUE
   | false_ -> FALSE
   | comma -> COMMA
+  | dot -> DOT
   | id -> ID (Sedlexing.Utf8.lexeme lexbuf)
   | number -> INT (int_of_string (Sedlexing.Utf8.lexeme lexbuf))
   | whitespace -> token lexbuf
@@ -65,5 +67,5 @@ let rec token lexbuf =
   | any ->
       let loc = Loc.loc_of_lexbuf lexbuf in
       let str = Sedlexing.Utf8.lexeme lexbuf in
-      raise (Error.Error (loc, Syntax (UnexpectedToken str)))
+      Error.error_with_loc (Syntax (UnexpectedToken str)) loc
   | _ -> failwith "unreachable"
