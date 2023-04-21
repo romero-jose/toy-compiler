@@ -76,6 +76,11 @@ let test_fun () =
     (parse
        "fun f -> (fun x -> f (fun v -> x x v)) (fun x -> f (fun v -> x x v))")
 
+let test_tuple () =
+  (check e) "same e"
+    (Tuple (List.map parse ["1"; "true"; "f 5"; "fun x -> x"; "(1 , 2)" ]))
+    (parse "(1, true, f 5,fun x -> x, (1,2))")
+
 let test_fibonacci () =
   (check e) "same e"
     (If
@@ -105,5 +110,6 @@ let () =
           test_case "if" `Quick test_if;
           test_case "function" `Quick test_fun;
           test_case "fibonacci" `Quick test_fibonacci;
+          test_case "tuple" `Quick test_tuple;
         ] );
     ]

@@ -31,6 +31,7 @@ let let_ = [%sedlex.regexp? "let"]
 let in_ = [%sedlex.regexp? "in"]
 let true_ = [%sedlex.regexp? "true"]
 let false_ = [%sedlex.regexp? "false"]
+let comma = [%sedlex.regexp? ',']
 
 let rec token lexbuf =
   match%sedlex lexbuf with
@@ -53,6 +54,7 @@ let rec token lexbuf =
   | in_ -> IN
   | true_ -> TRUE
   | false_ -> FALSE
+  | comma -> COMMA
   | id -> ID (Sedlexing.Utf8.lexeme lexbuf)
   | number -> INT (int_of_string (Sedlexing.Utf8.lexeme lexbuf))
   | whitespace -> token lexbuf

@@ -17,10 +17,13 @@
 %token FUN
 %token LPAREN RPAREN
 %token LET IN
+%token COMMA
 %token EOF
 
 %nonassoc ELSE
 
+%nonassoc below_COMMA
+%left COMMA
 %right OR
 %right AND
 %left EQUAL
@@ -58,6 +61,7 @@ expr:
   | FUN x = ID ARROW e = expr
     { Lam (x, e) }
   | LET x = ID EQUAL e1 = expr IN e2 = expr { Let (x, e1, e2) }
+  | exprs = expr_comma_list %prec below_COMMA { Tuple (exprs) }
 
 %inline op1:
   | MINUS {Neg}
@@ -88,4 +92,22 @@ simple_expr:
   | n = INT
     { Value (Int n) }
   | LPAREN e = expr RPAREN	
-    { e }    
+    { e }
+
+(* copied from the OCaml parser*)
+%inline expr_comma_list:
+  es = separated_nontrivial_llist(COMMA, expr) { es }
+
+reversed_separated_nontrivial_llist(separator, X):
+  xs = reversed_separated_nontrivial_llist(separator, X)
+  separator
+  x = X
+    { x :: xs }
+| x1 = X
+  separator
+  x2 = X
+    { [ x2; x1 ] }
+
+%inline separated_nontrivial_llist(separator, X):
+  xs = rev(reversed_separated_nontrivial_llist(separator, X))
+    { xs }

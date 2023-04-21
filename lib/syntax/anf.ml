@@ -10,6 +10,7 @@ and cexpr =
   | App of atom * atom
   | Prim1 of op1 * atom
   | Prim2 of op2 * atom * atom
+  | Tuple of atom list
 
 and atom = Const of const | Var of string | Lam of string * expr
 and const = Int of int | Bool of bool [@@deriving show { with_path = false }]
@@ -29,6 +30,13 @@ let rec trans0 : Ast.e -> expr = function
       trans1 e1 (fun e1 -> trans1 e2 (fun e2 -> Ret (Prim2 (op, e1, e2))))
   | If (e1, e2, e3) -> trans1 e1 (fun e1 -> If (e1, trans0 e2, trans0 e3))
   | Let (x, e1, e2) -> trans1 e1 (fun e1 -> Let (x, Atom e1, trans0 e2))
+  | Tuple exprs ->
+      let rec go exprs acc =
+        match exprs with
+        | e :: tl -> trans1 e (fun e -> go tl (e :: acc))
+        | [] -> Ret (Tuple (List.rev acc))
+      in
+      go exprs []
 
 and trans1 (e : Ast.e) (k : atom -> expr) : expr =
   match e with
@@ -50,6 +58,14 @@ and trans1 (e : Ast.e) (k : atom -> expr) : expr =
           If (e1, trans1 e2 (fun e2 -> k e2), trans1 e3 (fun e3 -> k e3)))
   | Let (x, e1, e2) ->
       trans1 e1 (fun e1 -> Let (x, Atom e1, trans1 e2 (fun e2 -> k e2)))
+  | Tuple exprs ->
+      let rec go exprs acc =
+        let name = Gensym.fresh "tuple" in
+        match exprs with
+        | e :: tl -> trans1 e (fun e -> go tl (e :: acc))
+        | [] -> Let (name, Tuple (List.rev acc), k (Var name))
+      in
+      go exprs []
 
 let trans : Ast.e -> expr =
   Gensym.init ();
@@ -75,6 +91,9 @@ and free_vars_c c =
   | App (a1, a2) -> StringSet.union (free_vars_a a1) (free_vars_a a2)
   | Prim1 (_, a) -> free_vars_a a
   | Prim2 (_, a1, a2) -> StringSet.union (free_vars_a a1) (free_vars_a a2)
+  | Tuple atoms ->
+      List.fold_left StringSet.union StringSet.empty
+        (List.map free_vars_a atoms)
 
 and free_vars_a a =
   match a with
@@ -101,6 +120,7 @@ and subst_cexpr subst = function
   | Prim1 (op, arg) -> Prim1 (op, subst_atom subst arg)
   | Prim2 (op, arg1, arg2) ->
       Prim2 (op, subst_atom subst arg1, subst_atom subst arg2)
+  | Tuple atoms -> Tuple (List.map (subst_atom subst) atoms)
 
 and subst_atom (subst : string * atom) = function
   | Var name when name = fst subst -> snd subst
@@ -127,6 +147,7 @@ and beta_reduce_cexpr cexpr (k : cexpr -> expr) =
   | Prim1 (op, arg) -> k (Prim1 (op, beta_reduce_atom arg))
   | Prim2 (op, arg1, arg2) ->
       k (Prim2 (op, beta_reduce_atom arg1, beta_reduce_atom arg2))
+  | Tuple atoms -> k (Tuple (List.map beta_reduce_atom atoms))
 
 and beta_reduce_atom = function
   | Var _ as v -> v
@@ -150,6 +171,7 @@ let remove_unused_let_bindings (e : expr) : expr =
     | App (a1, a2) -> App (go_a a1, go_a a2)
     | Prim1 (op, a) -> Prim1 (op, go_a a)
     | Prim2 (op2, a1, a2) -> Prim2 (op2, go_a a1, go_a a2)
+    | Tuple atoms -> Tuple (List.map go_a atoms)
   and go_a (a : atom) : atom =
     match (a : atom) with
     | Const c -> Const c

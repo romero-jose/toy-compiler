@@ -20,6 +20,7 @@ and cexpr =
   | Call of atom * atom
   | Prim1 of Ast.op1 * atom
   | Prim2 of Ast.op2 * atom * atom
+  | Tuple of atom list
 
 and atom = Const of const | Var of string | Closure of string * string list
 [@@deriving show { with_path = false }]
@@ -57,3 +58,10 @@ and closure_c (c : Anf.cexpr) k : program =
   | Anf.Prim1 (op, a) -> closure_a a (fun a -> k (Prim1 (op, a)))
   | Anf.Prim2 (op, a1, a2) ->
       closure_a a1 (fun a1 -> closure_a a2 (fun a2 -> k (Prim2 (op, a1, a2))))
+  | Anf.Tuple atoms ->
+      let rec go acc atoms =
+        match atoms with
+        | a :: tl -> closure_a a (fun a -> go (a :: acc) tl)
+        | [] -> k (Tuple (List.rev acc))
+      in
+      go [] atoms

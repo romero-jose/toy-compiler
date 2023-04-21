@@ -206,6 +206,15 @@ and codegen_cexpr (cexpr : cexpr) =
       build_call f_ptr arg_vals' "return" builder
   | Prim1 (op, a) -> lift_op1 op (codegen_atom a)
   | Prim2 (op, a1, a2) -> lift_op2 op (codegen_atom a1) (codegen_atom a2)
+  | Tuple atoms ->
+      let array = build_malloc Type.i64 "array" builder in
+      List.iteri
+        (fun i a ->
+          let v = codegen_atom a in
+          let _ = build_store_to_array array i v in
+          ())
+        atoms;
+      array
 
 and lift_op1 op a =
   match op with

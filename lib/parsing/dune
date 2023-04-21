@@ -7,6 +7,7 @@
 
 (menhir
  (modules parser)
+ (infer true)
  (flags -lg 1 -la 1 -lc 2 --exn-carries-state))
 
 ;;;;;;;;;;;;;;;;;
