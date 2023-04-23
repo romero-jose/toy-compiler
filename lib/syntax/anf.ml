@@ -204,12 +204,14 @@ let remove_unused_let_bindings (e : expr) : expr =
         let free_vars = free_vars_e body in
         if StringSet.mem id free_vars then Let (id, c, go_e body) else go_e body
     | Letrec (bindings, e) ->
-      let free_vars_list = List.map (fun (_, c) -> free_vars_c c) bindings in
-      let used_variables : StringSet.t =
-        List.fold_left StringSet.union (free_vars_e e) free_vars_list
-      in
-      let bindings' = List.filter (fun (x, _) -> StringSet.mem x used_variables) bindings in
-      Letrec (bindings', go_e e)
+        let free_vars_list = List.map (fun (_, c) -> free_vars_c c) bindings in
+        let used_variables : StringSet.t =
+          List.fold_left StringSet.union (free_vars_e e) free_vars_list
+        in
+        let bindings' =
+          List.filter (fun (x, _) -> StringSet.mem x used_variables) bindings
+        in
+        Letrec (bindings', go_e e)
     | If (a, e1, e2) -> If (go_a a, go_e e1, go_e e2)
   and go_c (c : cexpr) : cexpr =
     match (c : cexpr) with

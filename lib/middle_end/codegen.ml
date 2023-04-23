@@ -103,6 +103,14 @@ let declare_function name f_type args =
       else raise (Error "redefinition of function with different # args");
       f
 
+let lookup_function fname =
+  let the_module = Module.get () in
+  match lookup_function fname the_module with
+  | Some f -> f
+  | None ->
+      dump_module the_module;
+      failwith ("function not defined: " ^ fname)
+
 let load_var_from_env env idx id =
   let idx_v = const_int Type.i64 (idx + 1) in
   let name = Format.sprintf "%s" id in
@@ -139,11 +147,32 @@ and codegen_expr (expr : expr) : llvalue =
       Hashtbl.add named_values id v;
       codegen_expr expr
   | Letrec (bindings, expr) ->
-      List.iter
-        (fun (id, c) ->
-          let v = codegen_cexpr c in
-          Hashtbl.add named_values id v)
-        bindings;
+      (* fail if expressions other than lambdas are bound with letrec *)
+      let closure_bindings =
+        bindings
+        |> List.map (fun ((id, c) : string * cexpr) ->
+               match c with
+               | Atom (Closure (fname, captured_vars)) ->
+                   (id, (fname, captured_vars))
+               | _ -> failwith "expression other than lambda bound with let rec")
+      in
+      (* heap allocate each binding *)
+      let closure_ptrs =
+        closure_bindings
+        |> List.map (fun (id, (_fname, captured_vars)) ->
+               let closure_ptr = allocate_closure captured_vars in
+               let cast_closure =
+                 Llvm.build_ptrtoint closure_ptr Type.i64 "cast+closure" builder
+               in
+               Hashtbl.add named_values id cast_closure;
+               closure_ptr)
+      in
+      (* compile each binding and update the allocated closure as you go*)
+      List.iter2
+        (fun (_id, (fname, captured_vars)) closure_ptr ->
+          fill_closure closure_ptr fname captured_vars)
+        closure_bindings closure_ptrs;
+      (* compile the body *)
       codegen_expr expr
   | If (a, e1, e2) ->
       (* cond *)
@@ -192,39 +221,9 @@ and codegen_atom (atom : atom) =
       match Hashtbl.find_opt named_values id with
       | Some v -> v
       | None -> failwith (Format.sprintf "codegen: variable '%s' not found" id))
-  | Closure (fname, captured_vars) ->
-      let the_module = Module.get () in
-      let f =
-        match lookup_function fname the_module with
-        | Some f -> f
-        | None ->
-            dump_module the_module;
-            failwith ("function not defined: " ^ fname)
-      in
-      (* Allocate memory for the closure *)
-      let closure_size = 1 + List.length captured_vars in
-      let array_type = Type.array closure_size in
-      let closure_ptr = build_malloc array_type "closure_ptr" builder in
-      (* Store the function pointer as the first value of the array *)
-      let f_cast = build_ptrtoint f Type.i64 "f_cast" builder in
-      let _ = build_store_to_array closure_ptr 0 f_cast in
-      (* Store the captured variables after the function pointer *)
-      let () =
-        List.iteri
-          (fun i var ->
-            let v = codegen_atom (Var var) in
-            let idx = i + 1 in
-            let _ = build_store_to_array closure_ptr idx v in
-            ())
-          captured_vars
-      in
-      (* Cast the closure pointer to an integer for return *)
-      let cast_closure =
-        Llvm.build_ptrtoint closure_ptr Type.i64 "cast_closure" builder
-      in
-      cast_closure
+  | Closure (fname, captured_vars) -> codegen_closure fname captured_vars
 
-and codegen_cexpr (cexpr : cexpr) =
+and codegen_cexpr (cexpr : cexpr) : llvalue =
   match cexpr with
   | Atom a -> codegen_atom a
   | Call (f, arg) ->
@@ -327,3 +326,31 @@ and codegen_proto = function
       let bb = append_block context "entry" f in
       position_at_end bb builder;
       f
+
+and codegen_closure fname captured_vars =
+  let closure_ptr = allocate_closure captured_vars in
+  fill_closure closure_ptr fname captured_vars;
+  (* Cast the to an int for return *)
+  let cast_closure =
+    Llvm.build_ptrtoint closure_ptr Type.i64 "cast_closure" builder
+  in
+  cast_closure
+
+and allocate_closure captured_vars =
+  let closure_size = 1 + List.length captured_vars in
+  let array_type = Type.array closure_size in
+  let closure_ptr = build_malloc array_type "closure_ptr" builder in
+  closure_ptr
+
+and fill_closure closure_ptr fname captured_vars =
+  let f = lookup_function fname in
+  (* Store the function pointer as the first value of the array *)
+  let f_cast = build_ptrtoint f Type.i64 "f_cast" builder in
+  let _ = build_store_to_array closure_ptr 0 f_cast in
+  (* Store the captured variables after the function pointer *)
+  captured_vars
+  |> List.iteri (fun i var ->
+         let v = codegen_atom (Var var) in
+         let idx = i + 1 in
+         let _ = build_store_to_array closure_ptr idx v in
+         ())

@@ -39,4 +39,6 @@ let _ =
     in
     let _ = compile ast in
     ()
-  with Error.Error e -> Format.eprintf "%a\n" Error.pp_loc e; exit 1
+  with Error.Error e ->
+    Format.eprintf "%a\n" Error.pp_loc e;
+    exit 1

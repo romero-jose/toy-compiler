@@ -46,11 +46,45 @@ let%expect_test "tuple" =
   [%expect {| 1 |}]
 
 let%expect_test "list" =
-  test {|
+  test
+    {|
   let hd = fun l -> l.(0) in
   let tl = fun l -> l.(1) in
   let cons = fun a -> fun b -> (a, b) in
   let l = cons 1 (cons 2 (cons 3 (false))) in
   hd (tl (tl l))
-  |} "list";
+  |}
+    "list";
   [%expect {| 3 |}]
+
+let%expect_test "letrec" =
+  test
+    {|
+let rec fibonacci = fun n ->
+  if n < 2 then
+    n
+  else
+    (fibonacci (n - 1)) + (fibonacci (n - 2))
+  in
+  fibonacci 10
+|}
+    "let_rec";
+  [%expect {| 55 |}]
+
+let%expect_test "letrec_mutual_recursion" =
+  test
+    {|
+  let rec is_even = fun n ->
+    if n = 0 then
+      true
+    else
+      is_odd (n - 1)
+  and is_odd = fun n ->
+    if n = 0 then
+      false
+    else is_even (n - 1)
+  in
+  is_even 10
+|}
+    "let_rec_mutual_recursion";
+  [%expect {| true |}]
