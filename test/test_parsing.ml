@@ -30,7 +30,7 @@ let test_boolean_arithmetic () =
        ( Or,
          Prim2 (Less, parse "1", parse "2"),
          Prim2 (And, Prim2 (Eq, parse "3", parse "4"), Value (Bool false)) ))
-    (parse "1 < 2 or 3 = 4 and false")
+    (parse "1 < 2 || 3 = 4 && false")
 
 let test_let_bindings () =
   (check e) "same e"
@@ -84,6 +84,24 @@ let test_fibonacci () =
              App (Value (Var "fibonacci"), parse "n - 2") ) ))
     (parse "if n < 2 then 1 else fibonacci (n - 1) + fibonacci (n - 2)")
 
+let test_letrec () =
+  (check e) "same e"
+    (Letrec
+       ( [
+           ( "factorial",
+             parse "fun n -> if n = 1 then 1 else n * factorial (n - 1)" );
+         ],
+         parse "factorial 5" ))
+    (parse
+       {| let rec factorial = fun n ->
+          if n = 1 then
+              1
+          else
+              n * factorial (n - 1)
+          in
+          factorial 5
+  |})
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -103,5 +121,6 @@ let () =
           test_case "function" `Quick test_fun;
           test_case "fibonacci" `Quick test_fibonacci;
           test_case "tuple" `Quick test_tuple;
+          test_case "letrec" `Quick test_letrec;
         ] );
     ]

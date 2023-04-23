@@ -19,6 +19,8 @@ let minus = [%sedlex.regexp? '-']
 let times = [%sedlex.regexp? '*']
 let equal = [%sedlex.regexp? '=']
 let and_ = [%sedlex.regexp? "and"]
+let barbar = [%sedlex.regexp? "||"]
+let ampersandampersand = [%sedlex.regexp? "&&"]
 let or_ = [%sedlex.regexp? "or"]
 let not = [%sedlex.regexp? '!']
 let less = [%sedlex.regexp? '<']
@@ -28,6 +30,7 @@ let then_ = [%sedlex.regexp? "then"]
 let else_ = [%sedlex.regexp? "else"]
 let fun_ = [%sedlex.regexp? "fun"]
 let let_ = [%sedlex.regexp? "let"]
+let rec_ = [%sedlex.regexp? "rec"]
 let in_ = [%sedlex.regexp? "in"]
 let true_ = [%sedlex.regexp? "true"]
 let false_ = [%sedlex.regexp? "false"]
@@ -43,7 +46,8 @@ let rec token lexbuf =
   | times -> TIMES
   | equal -> EQUAL
   | and_ -> AND
-  | or_ -> OR
+  | barbar -> BARBAR
+  | ampersandampersand -> AMPERSANDAMPERSAND
   | not -> NOT
   | less -> LESS
   | arrow -> ARROW
@@ -52,6 +56,7 @@ let rec token lexbuf =
   | else_ -> ELSE
   | fun_ -> FUN
   | let_ -> LET
+  | rec_ -> REC
   | in_ -> IN
   | true_ -> TRUE
   | false_ -> FALSE

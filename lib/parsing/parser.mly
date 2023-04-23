@@ -1,6 +1,16 @@
 %{
   open Syntax
   open Ast
+
+  type bindings =
+  | Binding of (string * e)
+  | RecBindings of (string * e) list
+
+  let expr_of_let_bindings (b : bindings) (e2 : e) =
+  match b with
+  | Binding (id, e1) -> Let (id, e1, e2)
+  | RecBindings l -> Letrec (l, e2)
+
 %}
 
 %token ARROW
@@ -12,11 +22,12 @@
 %token MINUS
 %token TIMES
 %token EQUAL LESS
-%token AND OR
+%token AMPERSANDAMPERSAND BARBAR
+%token AND
 %token IF THEN ELSE
 %token FUN
 %token LPAREN RPAREN
-%token LET IN
+%token LET REC IN
 %token COMMA
 %token DOT
 %token EOF
@@ -26,10 +37,9 @@
 
 %nonassoc below_COMMA
 %left COMMA
-%right OR
-%right AND
-%left EQUAL
-%left LESS
+%right BARBAR
+%right AMPERSANDAMPERSAND
+%left EQUAL LESS
 %left ARROW
 %left PLUS MINUS
 %left TIMES
@@ -61,7 +71,7 @@ expr:
     { If (e1, e2, e3) }
   | FUN x = ID ARROW e = expr
     { Lam (x, e) }
-  | LET x = ID EQUAL e1 = expr IN e2 = expr { Let (x, e1, e2) }
+  | lbs = let_bindings e = expr { expr_of_let_bindings lbs e }
   | exprs = expr_comma_list %prec below_COMMA { Tuple (exprs) }
 
 %inline op1:
@@ -74,8 +84,8 @@ expr:
   | TIMES {Times}
   | EQUAL {Eq}
   | LESS {Less}
-  | AND {And}
-  | OR {Or}
+  | AMPERSANDAMPERSAND {And}
+  | BARBAR {Or}
 
 app_expr:
   | e = simple_expr
@@ -96,7 +106,18 @@ simple_expr:
   | LPAREN e = expr RPAREN	
     { e }
 
-(* copied from the OCaml parser*)
+%inline let_bindings:
+  | LET b = binding IN { Binding (fst b, snd b) }
+  | LET REC bs = and_bindings IN { RecBindings bs }
+
+%inline binding:
+  | id = ID EQUAL e = expr { (id, e) }
+
+and_bindings:
+  | b = binding { [b] }
+  | b = binding AND bs = and_bindings { b :: bs }
+
+(* copied from the OCaml parser *)
 %inline expr_comma_list:
   es = separated_nontrivial_llist(COMMA, expr) { es }
 
