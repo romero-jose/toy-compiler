@@ -18,24 +18,24 @@ let test str test_name =
 let%expect_test "addn" =
   test
     {|
-   let addn = fun n -> fun m -> n + m in
-   let add1 = addn 1 in
-   add1 5
-   |}
+  let addn = fun n -> fun m -> n + m in
+  let add1 = addn 1 in
+  add1 5
+  |}
     "addn";
   [%expect {| 6 |}]
 
 let%expect_test "fact" =
   test
     {|
-     let f = fun f -> fun n ->
-       if n = 0 then
-           1
-       else
-           n * (f f (n - 1))
-     in
-     f f 5
-     |}
+  let f = fun f -> fun n ->
+    if n = 0 then
+        1
+    else
+        n * (f f (n - 1))
+  in
+  f f 5
+  |}
     "fact";
   [%expect {| 120 |}]
 
@@ -60,13 +60,13 @@ let%expect_test "list" =
 let%expect_test "letrec" =
   test
     {|
-let rec fibonacci = fun n ->
-  if n < 2 then
-    n
-  else
-    (fibonacci (n - 1)) + (fibonacci (n - 2))
-  in
-  fibonacci 10
+  let rec fibonacci = fun n ->
+    if n < 2 then
+      n
+    else
+      (fibonacci (n - 1)) + (fibonacci (n - 2))
+    in
+    fibonacci 10
 |}
     "let_rec";
   [%expect {| 55 |}]
