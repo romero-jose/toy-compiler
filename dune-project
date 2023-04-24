@@ -21,7 +21,7 @@
  (name toy_compiler)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends ocaml dune sedlex menhirLib llvm cmdliner alcotest ppx_expect ppx_deriving)
  (tags
   (topics "to describe" your project)))
 

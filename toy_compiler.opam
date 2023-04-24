@@ -12,6 +12,13 @@ bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.4"}
+  "llvm"
+  "sedlex"
+  "menhirLib"
+  "cmdliner"
+  "alcotest"
+  "ppx_expect"
+  "ppx_deriving"
   "odoc" {with-doc}
 ]
 build: [
