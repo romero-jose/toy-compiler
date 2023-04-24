@@ -12,9 +12,10 @@ bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.4"}
-  "llvm"
   "sedlex"
+  "menhir"
   "menhirLib"
+  "llvm"
   "cmdliner"
   "alcotest"
   "ppx_expect"

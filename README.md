@@ -42,6 +42,8 @@ To install this project, first you need to install its dependencies using opam:
 opam install --deps-only .
 ```
 
+> Note: The project depends on LLVM 14 as a system dependency, so depending on your OS you may need to install it using your package manager.
+
 Then, build the project using dune:
 
 ```sh
